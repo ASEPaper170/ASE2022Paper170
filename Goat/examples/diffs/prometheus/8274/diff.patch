@@ -1,0 +1,13 @@
+diff --git a/cmd/prometheus/main_unix_test.go b/cmd/prometheus/main_unix_test.go
+index 393c6f9..cfee328 100644
+--- a/cmd/prometheus/main_unix_test.go
++++ b/cmd/prometheus/main_unix_test.go
+@@ -37,7 +38,7 @@ func TestStartupInterrupt(t *testing.T) {
+ 		return
+ 	}
+ 
+-	done := make(chan error, 1)
++	done := make(chan error)
+ 	go func() {
+ 		done <- prom.Wait()
+ 	}()

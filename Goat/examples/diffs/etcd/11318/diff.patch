@@ -1,0 +1,127 @@
+diff --git a/tests/integration/clientv3/experimental/recipes/v3_barrier_test.go b/tests/integration/clientv3/experimental/recipes/v3_barrier_test.go
+index b9dafe3..b85ec34 100644
+--- a/tests/integration/clientv3/experimental/recipes/v3_barrier_test.go
++++ b/tests/integration/clientv3/experimental/recipes/v3_barrier_test.go
+@@ -48,8 +48,6 @@ func testBarrier(t *testing.T, waiters int, chooseClient func() *clientv3.Client
+ 	}
+ 
+ 	donec := make(chan struct{})
+-	stopc := make(chan struct{})
+-	defer close(stopc)
+ 
+ 	for i := 0; i < waiters; i++ {
+ 		go func() {
+@@ -57,11 +55,8 @@ func testBarrier(t *testing.T, waiters int, chooseClient func() *clientv3.Client
+ 			if err := br.Wait(); err != nil {
+ 				t.Errorf("could not wait on barrier (%v)", err)
+ 			}
+-			select {
+-			case donec <- struct{}{}:
+-			case <-stopc:
+-			}
+
++			donec <- struct{}{}
+ 		}()
+ 	}
+ 
+diff --git a/tests/integration/clientv3/experimental/recipes/v3_lock_test.go b/tests/integration/clientv3/experimental/recipes/v3_lock_test.go
+index 1447e17..6924e68 100644
+--- a/tests/integration/clientv3/experimental/recipes/v3_lock_test.go
++++ b/tests/integration/clientv3/experimental/recipes/v3_lock_test.go
+@@ -49,8 +49,6 @@ func TestMutexLockMultiNode(t *testing.T) {
+ func testMutexLock(t *testing.T, waiters int, chooseClient func() *clientv3.Client) {
+ 	// stream lock acquisitions
+ 	lockedC := make(chan *concurrency.Mutex)
+-	stopC := make(chan struct{})
+-	defer close(stopC)
+ 
+ 	for i := 0; i < waiters; i++ {
+ 		go func() {
+@@ -62,11 +60,7 @@ func testMutexLock(t *testing.T, waiters int, chooseClient func() *clientv3.Clie
+ 			if err := m.Lock(context.TODO()); err != nil {
+ 				t.Errorf("could not wait on lock (%v)", err)
+ 			}
+-			select {
+-			case lockedC <- m:
+-			case <-stopC:
+-			}
+-
++			lockedC <- m
+ 		}()
+ 	}
+ 	// unlock locked mutexes
+@@ -110,8 +104,6 @@ func TestMutexTryLockMultiNode(t *testing.T) {
+ func testMutexTryLock(t *testing.T, lockers int, chooseClient func() *clientv3.Client) {
+ 	lockedC := make(chan *concurrency.Mutex)
+ 	notlockedC := make(chan *concurrency.Mutex)
+-	stopC := make(chan struct{})
+-	defer close(stopC)
+ 	for i := 0; i < lockers; i++ {
+ 		go func() {
+ 			session, err := concurrency.NewSession(chooseClient())
+@@ -121,15 +113,9 @@ func testMutexTryLock(t *testing.T, lockers int, chooseClient func() *clientv3.C
+ 			m := concurrency.NewMutex(session, "test-mutex-try-lock")
+ 			err = m.TryLock(context.TODO())
+ 			if err == nil {
+-				select {
+-				case lockedC <- m:
+-				case <-stopC:
+-				}
++				lockedC <- m
+ 			} else if err == concurrency.ErrLocked {
+-				select {
+-				case notlockedC <- m:
+-				case <-stopC:
+-				}
++				notlockedC <- m
+ 			} else {
+ 				t.Errorf("Unexpected Error %v", err)
+ 			}
+diff --git a/tests/integration/v3_leadership_test.go b/tests/integration/v3_leadership_test.go
+index 8e8f2f1..1c020a2 100644
+--- a/tests/integration/v3_leadership_test.go
++++ b/tests/integration/v3_leadership_test.go
+@@ -39,16 +39,11 @@ func testMoveLeader(t *testing.T, auto bool) {
+ 
+ 	// ensure followers go through leader transition while learship transfer
+ 	idc := make(chan uint64)
+-	stopc := make(chan struct{})
+-	defer close(stopc)
+ 
+ 	for i := range clus.Members {
+ 		if oldLeadIdx != i {
+ 			go func(m *member) {
+-				select {
+-				case idc <- checkLeaderTransition(m, oldLeadID):
+-				case <-stopc:
+-				}
++				idc <- checkLeaderTransition(m, oldLeadID)
+ 			}(clus.Members[i])
+ 		}
+ 	}
+diff --git a/tests/integration/v3_watch_test.go b/tests/integration/v3_watch_test.go
+index 140ce25..8e6fb7f 100644
+--- a/tests/integration/v3_watch_test.go
++++ b/tests/integration/v3_watch_test.go
+@@ -1190,7 +1190,7 @@ func TestV3WatchWithPrevKV(t *testing.T) {
+ 			t.Fatal(err)
+ 		}
+ 
+-		recv := make(chan *pb.WatchResponse, 1)
++		recv := make(chan *pb.WatchResponse)
+ 		go func() {
+ 			// check received PUT
+ 			resp, rerr := ws.Recv()
+diff --git a/tests/integration/v3election_grpc_test.go b/tests/integration/v3election_grpc_test.go
+index 4a52962..5169cab 100644
+--- a/tests/integration/v3election_grpc_test.go
++++ b/tests/integration/v3election_grpc_test.go
+@@ -97,7 +97,7 @@ func TestV3ElectionObserve(t *testing.T) {
+ 	lc := toGRPC(clus.Client(0)).Election
+ 
+ 	// observe leadership events
+-	observec := make(chan struct{}, 1)
++	observec := make(chan struct{})
+ 	go func() {
+ 		defer close(observec)
+ 		s, err := lc.Observe(context.Background(), &epb.LeaderRequest{Name: []byte("foo")})

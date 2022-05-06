@@ -1,0 +1,13 @@
+diff --git a/lib/protocol/protocol.go b/lib/protocol/protocol.go
+index 61ff3a3e5..735a8ab34 100644
+--- a/lib/protocol/protocol.go
++++ b/lib/protocol/protocol.go
+@@ -918,7 +918,7 @@ func (c *rawConnection) Close(err error) {
+ 	// dispatcherLoop, resulting in a deadlock.
+ 	// The sending above must happen before spawning the routine, to prevent
+ 	// the underlying connection from terminating before sending the close msg.
+-	go c.internalClose(err)
++	c.internalClose(err)
+ }
+ 
+ // internalClose is called if there is an unexpected error during normal operation.

@@ -1,0 +1,107 @@
+diff --git a/pkg/transport/listener_test.go b/pkg/transport/listener_test.go
+index a34d970..cf4f78d 100644
+--- a/pkg/transport/listener_test.go
++++ b/pkg/transport/listener_test.go
+@@ -146,14 +146,14 @@ func testNewListenerTLSInfoClientCheck(t *testing.T, skipClientSANVerify, goodCl
+ 
+ 	tr := &http.Transport{TLSClientConfig: tlsConfig}
+ 	cli := &http.Client{Transport: tr}
+-	chClientErr := make(chan error, 1)
++	chClientErr := make(chan error)
+ 	go func() {
+ 		_, err := cli.Get("https://" + ln.Addr().String())
+ 		chClientErr <- err
+ 	}()
+ 
+-	chAcceptErr := make(chan error, 1)
+-	chAcceptConn := make(chan net.Conn, 1)
++	chAcceptErr := make(chan error)
++	chAcceptConn := make(chan net.Conn)
+ 	go func() {
+ 		conn, err := ln.Accept()
+ 		if err != nil {
+diff --git a/pkg/transport/timeout_dialer_test.go b/pkg/transport/timeout_dialer_test.go
+index ff188a7..92589ce 100644
+--- a/pkg/transport/timeout_dialer_test.go
++++ b/pkg/transport/timeout_dialer_test.go
+@@ -22,9 +22,6 @@ import (
+ 
+ func TestReadWriteTimeoutDialer(t *testing.T) {
+ 	stop := make(chan struct{})
+-	defer func() {
+-		stop <- struct{}{}
+-	}()
+ 
+ 	ln, err := net.Listen("tcp", "127.0.0.1:0")
+ 	if err != nil {
+@@ -45,7 +42,7 @@ func TestReadWriteTimeoutDialer(t *testing.T) {
+ 
+ 	// fill the socket buffer
+ 	data := make([]byte, 5*1024*1024)
+-	done := make(chan struct{}, 1)
++	done := make(chan struct{})
+ 	go func() {
+ 		_, err = conn.Write(data)
+ 		done <- struct{}{}
+@@ -84,6 +81,8 @@ func TestReadWriteTimeoutDialer(t *testing.T) {
+ 	if operr, ok := err.(*net.OpError); !ok || operr.Op != "read" || !operr.Timeout() {
+ 		t.Errorf("err = %v, want write i/o timeout error", err)
+ 	}
++
++	stop <- struct{}{}
+ }
+ 
+ type testBlockingServer struct {
+diff --git a/pkg/transport/timeout_listener_test.go b/pkg/transport/timeout_listener_test.go
+index f2eaad7..fe09fe3 100644
+--- a/pkg/transport/timeout_listener_test.go
++++ b/pkg/transport/timeout_listener_test.go
+@@ -47,7 +47,7 @@ func TestWriteReadTimeoutListener(t *testing.T) {
+ 		wtimeoutd:  10 * time.Millisecond,
+ 		rdtimeoutd: 10 * time.Millisecond,
+ 	}
+-	stop := make(chan struct{}, 1)
++	stop := make(chan struct{})
+ 
+ 	blocker := func() {
+ 		conn, derr := net.Dial("tcp", ln.Addr().String())
+@@ -62,14 +62,13 @@ func TestWriteReadTimeoutListener(t *testing.T) {
+ 
+ 	conn, err := wln.Accept()
+ 	if err != nil {
+-		stop <- struct{}{}
+ 		t.Fatalf("unexpected accept error: %v", err)
+ 	}
+ 	defer conn.Close()
+ 
+ 	// fill the socket buffer
+ 	data := make([]byte, 5*1024*1024)
+-	done := make(chan struct{}, 1)
++	done := make(chan struct{})
+ 	go func() {
+ 		_, err = conn.Write(data)
+ 		done <- struct{}{}
+@@ -79,7 +78,6 @@ func TestWriteReadTimeoutListener(t *testing.T) {
+ 	case <-done:
+ 	// It waits 1s more to avoid delay in low-end system.
+ 	case <-time.After(wln.wtimeoutd*10 + time.Second):
+-		stop <- struct{}{}
+ 		t.Fatal("wait timeout")
+ 	}
+ 
+@@ -92,7 +90,6 @@ func TestWriteReadTimeoutListener(t *testing.T) {
+ 
+ 	conn, err = wln.Accept()
+ 	if err != nil {
+-		stop <- struct{}{}
+ 		t.Fatalf("unexpected accept error: %v", err)
+ 	}
+ 	buf := make([]byte, 10)
+@@ -105,7 +102,6 @@ func TestWriteReadTimeoutListener(t *testing.T) {
+ 	select {
+ 	case <-done:
+ 	case <-time.After(wln.rdtimeoutd * 10):
+-		stop <- struct{}{}
+ 		t.Fatal("wait timeout")
+ 	}
+ 

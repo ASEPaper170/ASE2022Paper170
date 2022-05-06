@@ -1,0 +1,13 @@
+diff --git a/staging/src/k8s.io/apiserver/pkg/endpoints/handlers/finisher/finisher.go b/staging/src/k8s.io/apiserver/pkg/endpoints/handlers/finisher/finisher.go
+index 42b81c7f..e27932d7 100644
+--- a/staging/src/k8s.io/apiserver/pkg/endpoints/handlers/finisher/finisher.go
++++ b/staging/src/k8s.io/apiserver/pkg/endpoints/handlers/finisher/finisher.go
+@@ -66,7 +66,7 @@ func (r *result) Return() (runtime.Object, error) {
+ func FinishRequest(ctx context.Context, fn ResultFunc) (runtime.Object, error) {
+ 	// the channel needs to be buffered to prevent the goroutine below from hanging indefinitely
+ 	// when the select statement reads something other than the one the goroutine sends on.
+-	resultCh := make(chan *result, 1)
++	resultCh := make(chan *result)
+ 
+ 	go func() {
+ 		result := &result{}

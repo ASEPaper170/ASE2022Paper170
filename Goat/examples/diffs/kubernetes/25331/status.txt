@@ -1,0 +1,4 @@
+Analysis does not finish.
+Probably because it is analyzing too much code.
+
+https://github.com/kubernetes/kubernetes/pull/25331/files

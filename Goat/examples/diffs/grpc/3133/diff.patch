@@ -1,0 +1,48 @@
+diff --git a/internal/testutils/pipe_listener_test.go b/internal/testutils/pipe_listener_test.go
+index 45cc27e..8c25a7d 100644
+--- a/internal/testutils/pipe_listener_test.go
++++ b/internal/testutils/pipe_listener_test.go
+@@ -36,7 +36,7 @@ func Test(t *testing.T) {
+ 
+ func TestPipeListener(t *testing.T) {
+ 	pl := testutils.NewPipeListener()
+-	recvdBytes := make(chan []byte, 1)
++	recvdBytes := make(chan []byte)
+ 	const want = "hello world"
+ 
+ 	go func() {
+diff --git a/test/bufconn/bufconn_test.go b/test/bufconn/bufconn_test.go
+index a1df2c3..5f34666 100644
+--- a/test/bufconn/bufconn_test.go
++++ b/test/bufconn/bufconn_test.go
+@@ -106,7 +106,7 @@ func TestConn(t *testing.T) {
+ 
+ func TestConnCloseWithData(t *testing.T) {
+ 	lis := Listen(7)
+-	errChan := make(chan error, 1)
++	errChan := make(chan error)
+ 	var lisConn net.Conn
+ 	go func() {
+ 		var err error
+@@ -209,7 +209,7 @@ func TestCloseWhileAccepting(t *testing.T) {
+ }
+ 
+ func TestDeadline(t *testing.T) {
+-	sig := make(chan error, 2)
++	sig := make(chan error)
+ 	blockingWrite := func(conn net.Conn) {
+ 		_, err := conn.Write([]byte("0123456789"))
+ 		sig <- err
+diff --git a/test/end2end_test.go b/test/end2end_test.go
+index 902e942..36634f9 100644
+--- a/test/end2end_test.go
++++ b/test/end2end_test.go
+@@ -4817,7 +4817,7 @@ func testClientResourceExhaustedCancelFullDuplex(t *testing.T, e env) {
+ 		resp := &testpb.StreamingOutputCallResponse{
+ 			Payload: payload,
+ 		}
+-		ce := make(chan error, 1)
++		ce := make(chan error)
+ 		go func() {
+ 			var err error
+ 			for {

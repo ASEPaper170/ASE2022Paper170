@@ -1,0 +1,15 @@
+diff --git a/pkg/sql/flowinfra/outbox.go b/pkg/sql/flowinfra/outbox.go
+index 8a117ecb73..df6711d65c 100644
+--- a/pkg/sql/flowinfra/outbox.go
++++ b/pkg/sql/flowinfra/outbox.go
+@@ -203,10 +203,6 @@ func (m *Outbox) flush(ctx context.Context) error {
+ // Depending on the specific error, the stream might or might not need to be
+ // closed. In case it doesn't, m.stream has been set to nil.
+ func (m *Outbox) mainLoop(ctx context.Context) error {
+-	// No matter what happens, we need to make sure we close our RowChannel, since
+-	// writers could be writing to it as soon as we are started.
+-	defer m.RowChannel.ConsumerClosed()
+-
+ 	var span *tracing.Span
+ 	ctx, span = execinfra.ProcessorSpan(ctx, "outbox")
+ 	defer span.Finish()

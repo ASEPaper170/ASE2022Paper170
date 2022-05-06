@@ -1,0 +1,61 @@
+diff --git a/common/mclock/simclock_test.go b/common/mclock/simclock_test.go
+index 48f3fd5..94aa4f2 100644
+--- a/common/mclock/simclock_test.go
++++ b/common/mclock/simclock_test.go
+@@ -96,7 +96,7 @@ func TestSimulatedSleep(t *testing.T) {
+ 	var (
+ 		c       Simulated
+ 		timeout = 1 * time.Hour
+-		done    = make(chan AbsTime, 1)
++		done    = make(chan AbsTime)
+ 	)
+ 	go func() {
+ 		c.Sleep(timeout)
+diff --git a/eth/handler_eth_test.go b/eth/handler_eth_test.go
+index 5f5d4e9..401d518 100644
+--- a/eth/handler_eth_test.go
++++ b/eth/handler_eth_test.go
+@@ -708,7 +708,7 @@ func testBroadcastMalformedBlock(t *testing.T, protocol uint) {
+ 	// the blocks, subscribe to inbound network events
+ 	backend := new(testEthHandler)
+ 
+-	blocks := make(chan *types.Block, 1)
++	blocks := make(chan *types.Block)
+ 	sub := backend.blockBroadcasts.Subscribe(blocks)
+ 	defer sub.Unsubscribe()
+ 
+diff --git a/p2p/server_test.go b/p2p/server_test.go
+index a5b3190..3b3f754 100644
+--- a/p2p/server_test.go
++++ b/p2p/server_test.go
+@@ -130,7 +130,7 @@ func TestServerDial(t *testing.T) {
+ 		t.Fatalf("could not setup listener: %v", err)
+ 	}
+ 	defer listener.Close()
+-	accepted := make(chan net.Conn, 1)
++	accepted := make(chan net.Conn)
+ 	go func() {
+ 		conn, err := listener.Accept()
+ 		if err != nil {
+@@ -545,7 +545,7 @@ func TestServerInboundThrottle(t *testing.T) {
+ 	conn.Close()
+ 
+ 	// Dial again. This time the server should close the connection immediately.
+-	connClosed := make(chan struct{}, 1)
++	connClosed := make(chan struct{})
+ 	conn, err = net.DialTimeout("tcp", srv.ListenAddr, timeout)
+ 	if err != nil {
+ 		t.Fatalf("could not dial: %v", err)
+diff --git a/rpc/client_test.go b/rpc/client_test.go
+index 5b1f960..3aabab5 100644
+--- a/rpc/client_test.go
++++ b/rpc/client_test.go
+@@ -327,7 +327,7 @@ func TestClientSubscribeClose(t *testing.T) {
+ 
+ 	var (
+ 		nc   = make(chan int)
+-		errc = make(chan error, 1)
++		errc = make(chan error)
+ 		sub  *ClientSubscription
+ 		err  error
+ 	)

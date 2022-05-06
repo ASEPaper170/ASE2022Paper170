@@ -1,0 +1,18 @@
+diff --git a/pkg/kv/kvserver/consistency_queue.go b/pkg/kv/kvserver/consistency_queue.go
+index 5d1a0120e6..9df57daf70 100644
+--- a/pkg/kv/kvserver/consistency_queue.go
++++ b/pkg/kv/kvserver/consistency_queue.go
+@@ -198,12 +198,7 @@ func (q *consistencyQueue) process(
+ 	}
+ 	resp, pErr := repl.CheckConsistency(ctx, req)
+ 	if pErr != nil {
+-		var shouldQuiesce bool
+-		select {
+-		case <-repl.store.Stopper().ShouldQuiesce():
+-			shouldQuiesce = true
+-		default:
+-		}
++		_, shouldQuiesce := <-repl.store.Stopper().ShouldQuiesce()
+ 
+ 		if shouldQuiesce && grpcutil.IsClosedConnection(pErr.GoError()) {
+ 			// Suppress noisy errors about closed GRPC connections when the

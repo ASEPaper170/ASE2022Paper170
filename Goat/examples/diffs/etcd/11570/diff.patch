@@ -1,0 +1,110 @@
+diff --git a/client/v2/client_test.go b/client/v2/client_test.go
+index 8e83bd2..44e14f9 100644
+--- a/client/v2/client_test.go
++++ b/client/v2/client_test.go
+@@ -285,7 +285,7 @@ func TestSimpleHTTPClientDoHeaderTimeout(t *testing.T) {
+ 	tr.finishCancel <- struct{}{}
+ 	c := &simpleHTTPClient{transport: tr, headerTimeout: time.Millisecond}
+ 
+-	errc := make(chan error, 1)
++	errc := make(chan error)
+ 	go func() {
+ 		_, _, err := c.Do(context.Background(), &fakeAction{})
+ 		errc <- err
+@@ -452,7 +452,7 @@ func TestHTTPClusterClientDoDeadlineExceedContext(t *testing.T) {
+ 		endpoints:     []url.URL{fakeURL},
+ 	}
+ 
+-	errc := make(chan error, 1)
++	errc := make(chan error)
+ 	go func() {
+ 		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+ 		defer cancel()
+@@ -502,7 +502,7 @@ func TestHTTPClusterClientDoCanceledContext(t *testing.T) {
+ 		endpoints:     []url.URL{fakeURL},
+ 	}
+ 
+-	errc := make(chan error, 1)
++	errc := make(chan error)
+ 	go func() {
+ 		ctx, cancel := withTimeout(fakeCancelContext{}, time.Millisecond)
+ 		cancel()
+diff --git a/client/v3/client_test.go b/client/v3/client_test.go
+index e6918f1..7da19b5 100644
+--- a/client/v3/client_test.go
++++ b/client/v3/client_test.go
+@@ -99,7 +99,7 @@ func TestDialTimeout(t *testing.T) {
+ 	}
+ 
+ 	for i, cfg := range testCfgs {
+-		donec := make(chan error, 1)
++		donec := make(chan error)
+ 		go func(cfg Config) {
+ 			// without timeout, dial continues forever on ipv4 black hole
+ 			c, err := New(cfg)
+diff --git a/client/v3/txn_test.go b/client/v3/txn_test.go
+index da762fa..bffe450 100644
+--- a/client/v3/txn_test.go
++++ b/client/v3/txn_test.go
+@@ -26,7 +26,7 @@ func TestTxnPanics(t *testing.T) {
+ 
+ 	kv := &kv{}
+ 
+-	errc := make(chan string, 1)
++	errc := make(chan string)
+ 	df := func() {
+ 		if s := recover(); s != nil {
+ 			errc <- s.(string)
+diff --git a/pkg/proxy/server_test.go b/pkg/proxy/server_test.go
+index 5e997dd..72b3149 100644
+--- a/pkg/proxy/server_test.go
++++ b/pkg/proxy/server_test.go
+@@ -94,7 +94,7 @@ func testServer(t *testing.T, scheme string, secure bool, delayTx bool) {
+ 		}
+ 	}()
+ 
+-	recvc := make(chan []byte, 1)
++	recvc := make(chan []byte)
+ 	go func() {
+ 		for i := 0; i < 2; i++ {
+ 			recvc <- receive(t, ln)
+@@ -247,7 +247,7 @@ func TestServer_PauseTx(t *testing.T) {
+ 	data := []byte("Hello World!")
+ 	send(t, data, scheme, srcAddr, transport.TLSInfo{})
+ 
+-	recvc := make(chan []byte, 1)
++	recvc := make(chan []byte)
+ 	go func() {
+ 		recvc <- receive(t, ln)
+ 	}()
+@@ -364,7 +364,7 @@ func TestServer_BlackholeTx(t *testing.T) {
+ 	data := []byte("Hello World!")
+ 	send(t, data, scheme, srcAddr, transport.TLSInfo{})
+ 
+-	recvc := make(chan []byte, 1)
++	recvc := make(chan []byte)
+ 	go func() {
+ 		recvc <- receive(t, ln)
+ 	}()
+diff --git a/server/lease/lessor_test.go b/server/lease/lessor_test.go
+index 61b9309..7f96965 100644
+--- a/server/lease/lessor_test.go
++++ b/server/lease/lessor_test.go
+@@ -429,7 +429,7 @@ func TestLessorExpire(t *testing.T) {
+ 		t.Fatalf("failed to receive expired lease")
+ 	}
+ 
+-	donec := make(chan struct{}, 1)
++	donec := make(chan struct{})
+ 	go func() {
+ 		// expired lease cannot be renewed
+ 		if _, err := le.Renew(l.ID); err != ErrLeaseNotFound {
+@@ -482,7 +482,7 @@ func TestLessorExpireAndDemote(t *testing.T) {
+ 		t.Fatalf("failed to receive expired lease")
+ 	}
+ 
+-	donec := make(chan struct{}, 1)
++	donec := make(chan struct{})
+ 	go func() {
+ 		// expired lease cannot be renewed
+ 		if _, err := le.Renew(l.ID); err != ErrNotPrimary {

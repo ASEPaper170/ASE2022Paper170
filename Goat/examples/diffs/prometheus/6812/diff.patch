@@ -1,0 +1,69 @@
+diff --git a/scrape/scrape_test.go b/scrape/scrape_test.go
+index ac972a6..e1e073f 100644
+--- a/scrape/scrape_test.go
++++ b/scrape/scrape_test.go
+@@ -625,7 +625,7 @@ func nopMutator(l labels.Labels) labels.Labels { return l }
+ 
+ func TestScrapeLoopStop(t *testing.T) {
+ 	var (
+-		signal   = make(chan struct{}, 1)
++		signal   = make(chan struct{})
+ 		appender = &collectResultAppender{}
+ 		scraper  = &testScraper{}
+ 		app      = func(ctx context.Context) storage.Appender { return appender }
+@@ -690,7 +690,7 @@ func TestScrapeLoopStop(t *testing.T) {
+ 
+ func TestScrapeLoopRun(t *testing.T) {
+ 	var (
+-		signal = make(chan struct{}, 1)
++		signal = make(chan struct{})
+ 		errc   = make(chan error)
+ 
+ 		scraper = &testScraper{}
+@@ -927,7 +927,7 @@ func TestScrapeLoopSeriesAdded(t *testing.T) {
+ func TestScrapeLoopRunCreatesStaleMarkersOnFailedScrape(t *testing.T) {
+ 	appender := &collectResultAppender{}
+ 	var (
+-		signal  = make(chan struct{}, 1)
++		signal  = make(chan struct{})
+ 		scraper = &testScraper{}
+ 		app     = func(ctx context.Context) storage.Appender { return appender }
+ 	)
+@@ -1039,7 +1039,7 @@ func TestScrapeLoopCache(t *testing.T) {
+ 
+ 	appender := &collectResultAppender{}
+ 	var (
+-		signal  = make(chan struct{}, 1)
++		signal  = make(chan struct{})
+ 		scraper = &testScraper{}
+ 		app     = func(ctx context.Context) storage.Appender { appender.next = s.Appender(ctx); return appender }
+ 	)
+@@ -1113,7 +1113,7 @@ func TestScrapeLoopCacheMemoryExhaustionProtection(t *testing.T) {
+ 
+ 	appender := &collectResultAppender{next: sapp}
+ 	var (
+-		signal  = make(chan struct{}, 1)
++		signal  = make(chan struct{})
+ 		scraper = &testScraper{}
+ 		app     = func(ctx context.Context) storage.Appender { return appender }
+ 	)
+@@ -1712,7 +1712,7 @@ func TestTargetScrapeScrapeCancel(t *testing.T) {
+ 	}
+ 	ctx, cancel := context.WithCancel(context.Background())
+ 
+-	errc := make(chan error, 1)
++	errc := make(chan error)
+ 
+ 	go func() {
+ 		time.Sleep(1 * time.Second)
+@@ -1725,9 +1725,8 @@ func TestTargetScrapeScrapeCancel(t *testing.T) {
+ 			errc <- errors.New("Expected error but got nil")
+ 		} else if ctx.Err() != context.Canceled {
+ 			errc <- errors.Errorf("Expected context cancellation error but got: %s", ctx.Err())
+-		} else {
+-			close(errc)
+ 		}
++		close(errc)
+ 	}()
+ 
+ 	select {

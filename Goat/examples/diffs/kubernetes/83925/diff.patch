@@ -1,0 +1,13 @@
+diff --git a/test/e2e/framework/resource_usage_gatherer.go b/test/e2e/framework/resource_usage_gatherer.go
+index 7c9c0407..ad23d9df 100644
+--- a/test/e2e/framework/resource_usage_gatherer.go
++++ b/test/e2e/framework/resource_usage_gatherer.go
+@@ -511,7 +511,7 @@ func (g *ContainerResourceGatherer) StartGatheringData() {
+ func (g *ContainerResourceGatherer) StopAndSummarize(percentiles []int, constraints map[string]ResourceConstraint) (*ResourceUsageSummary, error) {
+ 	close(g.stopCh)
+ 	Logf("Closed stop channel. Waiting for %v workers", len(g.workers))
+-	finished := make(chan struct{}, 1)
++	finished := make(chan struct{})
+ 	go func() {
+ 		g.workerWg.Wait()
+ 		finished <- struct{}{}

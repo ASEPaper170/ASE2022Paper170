@@ -1,0 +1,26 @@
+diff --git a/test/e2e/framework/kubelet/stats.go b/test/e2e/framework/kubelet/stats.go
+index 6484081e..21ddf576 100644
+--- a/test/e2e/framework/kubelet/stats.go
++++ b/test/e2e/framework/kubelet/stats.go
+@@ -101,7 +101,7 @@ type RuntimeOperationErrorRate struct {
+ func ProxyRequest(c clientset.Interface, node, endpoint string, port int) (restclient.Result, error) {
+ 	// proxy tends to hang in some cases when Node is not ready. Add an artificial timeout for this call. #22165
+ 	var result restclient.Result
+-	finished := make(chan struct{}, 1)
++	finished := make(chan struct{})
+ 	go func() {
+ 		result = c.CoreV1().RESTClient().Get().
+ 			Resource("nodes").
+diff --git a/test/e2e/framework/metrics/kubelet_metrics.go b/test/e2e/framework/metrics/kubelet_metrics.go
+index 2c181020..41b8dc58 100644
+--- a/test/e2e/framework/metrics/kubelet_metrics.go
++++ b/test/e2e/framework/metrics/kubelet_metrics.go
+@@ -90,7 +90,7 @@ func parseKubeletMetrics(data string) (KubeletMetrics, error) {
+ 
+ func (g *Grabber) getMetricsFromNode(nodeName string, kubeletPort int) (string, error) {
+ 	// There's a problem with timing out during proxy. Wrapping this in a goroutine to prevent deadlock.
+-	finished := make(chan struct{}, 1)
++	finished := make(chan struct{})
+ 	var err error
+ 	var rawOutput []byte
+ 	go func() {
