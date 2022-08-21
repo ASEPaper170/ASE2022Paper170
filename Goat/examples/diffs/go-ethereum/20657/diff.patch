@@ -1,0 +1,66 @@
+diff --git a/event/subscription.go b/event/subscription.go
+index 6c62874..0077a43 100644
+--- a/event/subscription.go
++++ b/event/subscription.go
+@@ -168,6 +168,7 @@ func (s *resubscribeSub) loop() {
+ func (s *resubscribeSub) subscribe() Subscription {
+ 	subscribed := make(chan error)
+ 	var sub Subscription
++retry:
+ 	for {
+ 		s.lastTry = mclock.Now()
+ 		ctx, cancel := context.WithCancel(context.Background())
+@@ -179,19 +180,19 @@ func (s *resubscribeSub) subscribe() Subscription {
+ 		select {
+ 		case err := <-subscribed:
+ 			cancel()
+-			if err == nil {
+-				if sub == nil {
+-					panic("event: ResubscribeFunc returned nil subscription and no error")
++			if err != nil {
++				// Subscribing failed, wait before launching the next try.
++				if s.backoffWait() {
++					return nil
+ 				}
+-				return sub
++				continue retry
+ 			}
+-			// Subscribing failed, wait before launching the next try.
+-			if s.backoffWait() {
+-				return nil // unsubscribed during wait
++			if sub == nil {
++				panic("event: ResubscribeFunc returned nil subscription and no error")
+ 			}
++			return sub
+ 		case <-s.unsub:
+ 			cancel()
+-			<-subscribed // avoid leaking the s.fn goroutine.
+ 			return nil
+ 		}
+ 	}
+diff --git a/event/subscription_test.go b/event/subscription_test.go
+index ba08170..4cef3f8 100644
+--- a/event/subscription_test.go
++++ b/event/subscription_test.go
+@@ -104,7 +104,7 @@ func TestResubscribe(t *testing.T) {
+ func TestResubscribeAbort(t *testing.T) {
+ 	t.Parallel()
+ 
+-	done := make(chan error, 1)
++	done := make(chan error)
+ 	sub := Resubscribe(0, func(ctx context.Context) (Subscription, error) {
+ 		select {
+ 		case <-ctx.Done():
+diff --git a/p2p/simulations/adapters/exec.go b/p2p/simulations/adapters/exec.go
+index 35ccdfb..d40bf37 100644
+--- a/p2p/simulations/adapters/exec.go
++++ b/p2p/simulations/adapters/exec.go
+@@ -298,7 +298,7 @@ func (n *ExecNode) Stop() error {
+ 	if err := n.Cmd.Process.Signal(syscall.SIGTERM); err != nil {
+ 		return n.Cmd.Process.Kill()
+ 	}
+-	waitErr := make(chan error, 1)
++	waitErr := make(chan error)
+ 	go func() {
+ 		waitErr <- n.Cmd.Wait()
+ 	}()

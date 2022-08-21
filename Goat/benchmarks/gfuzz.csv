@@ -1,0 +1,7 @@
+etcd,https://github.com/etcd-io/etcd.git,6bb26ef008f5465bd11b078f0a2e3ae95fdc6d4a
+grpc,https://github.com/grpc/grpc-go.git,9280052d36656451dd7568a18a836c2a74edaf6c
+go-ethereum,https://github.com/ethereum/go-ethereum.git,123e934e72dbbc63281858ec20c29beb6f70d9ba
+prometheus,https://github.com/prometheus/prometheus.git,e0f1506254688cec85276cc939aeb536a4e029d1
+tidb,https://github.com/pingcap/tidb.git,7e6690df8e8d5474b1872edbd279bb1b3c510ee5
+kubernetes,https://github.com/kubernetes/kubernetes.git,04b8cec5c32bc23aaf9629d60c9ae76fe3629c71
+moby,https://github.com/moby/moby.git,546c33cedef6283101e8280159647b2b3aa9cc41

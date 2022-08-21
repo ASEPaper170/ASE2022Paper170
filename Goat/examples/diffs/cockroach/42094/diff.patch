@@ -1,0 +1,33 @@
+diff --git a/pkg/util/quotapool/intpool_test.go b/pkg/util/quotapool/intpool_test.go
+index d198d99598..5df6da2f6e 100644
+--- a/pkg/util/quotapool/intpool_test.go
++++ b/pkg/util/quotapool/intpool_test.go
+@@ -93,7 +93,7 @@ func TestQuotaPoolContextCancellation(t *testing.T) {
+ 		t.Fatal(err)
+ 	}
+ 
+-	errCh := make(chan error, 1)
++	errCh := make(chan error)
+ 	go func() {
+ 		_, canceledErr := qp.Acquire(ctx, 1)
+ 		errCh <- canceledErr
+diff --git a/pkg/util/stop/stopper_test.go b/pkg/util/stop/stopper_test.go
+index e2436d9028..cfec845aa6 100644
+--- a/pkg/util/stop/stopper_test.go
++++ b/pkg/util/stop/stopper_test.go
+@@ -52,7 +52,6 @@ func TestStopper(t *testing.T) {
+ 	<-s.ShouldQuiesce()
+ 	select {
+ 	case <-waiting:
+-		close(cleanup)
+ 		t.Fatal("expected stopper to have blocked")
+ 	case <-time.After(100 * time.Millisecond):
+ 		// Expected.
+@@ -62,7 +61,6 @@ func TestStopper(t *testing.T) {
+ 	case <-waiting:
+ 		// Success.
+ 	case <-time.After(time.Second):
+-		close(cleanup)
+ 		t.Fatal("stopper should have finished waiting")
+ 	}
+ 	close(cleanup)

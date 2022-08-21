@@ -1,0 +1,19 @@
+diff --git a/raft/node.go b/raft/node.go
+index 2a8f12b..d8ec859 100644
+--- a/raft/node.go
++++ b/raft/node.go
+@@ -517,12 +517,8 @@ func (n *node) ApplyConfChange(cc pb.ConfChangeI) *pb.ConfState {
+ 
+ func (n *node) Status() Status {
+ 	c := make(chan Status)
+-	select {
+-	case n.status <- c:
+-		return <-c
+-	case <-n.done:
+-		return Status{}
+-	}
++	n.status <- c
++	return <-c
+ }
+ 
+ func (n *node) ReportUnreachable(id uint64) {

@@ -1,0 +1,3 @@
+The test works but is trivial as there is not matching receiver for the sends in this test.
+
+https://github.com/kubernetes/kubernetes/pull/38669

@@ -1,0 +1,22 @@
+diff --git a/staging/src/k8s.io/apiserver/pkg/storage/cacher/cacher.go b/staging/src/k8s.io/apiserver/pkg/storage/cacher/cacher.go
+index e89614ad..1a0a348e 100644
+--- a/staging/src/k8s.io/apiserver/pkg/storage/cacher/cacher.go
++++ b/staging/src/k8s.io/apiserver/pkg/storage/cacher/cacher.go
+@@ -1338,16 +1338,8 @@ func (c *cacheWatcher) sendWatchCacheEvent(event *watchCacheEvent) {
+ 	// into the next select after this. With that, no matter which
+ 	// statement we choose there, we will deliver only consecutive
+ 	// events.
+-	select {
+-	case <-c.done:
+-		return
+-	default:
+-	}
+ 
+-	select {
+-	case c.result <- *watchEvent:
+-	case <-c.done:
+-	}
++	c.result <- *watchEvent
+ }
+ 
+ func (c *cacheWatcher) processEvents(ctx context.Context, initEvents []*watchCacheEvent, resourceVersion uint64) {

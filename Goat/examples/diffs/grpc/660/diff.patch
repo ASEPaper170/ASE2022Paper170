@@ -1,0 +1,32 @@
+diff --git a/benchmark/worker/benchmark_client.go b/benchmark/worker/benchmark_client.go
+index 43af38d..1bb8103 100644
+--- a/benchmark/worker/benchmark_client.go
++++ b/benchmark/worker/benchmark_client.go
+@@ -262,24 +262,13 @@ func (bc *benchmarkClient) doCloseLoopUnary(conns []*grpc.ClientConn, rpcCountPe
+ 					go func() {
+ 						start := time.Now()
+ 						if err := benchmark.DoUnaryCall(client, reqSize, respSize); err != nil {
+-							select {
+-							case <-bc.stop:
+-							case done <- false:
+-							}
+-							return
++							done <- false
+ 						}
+ 						elapse := time.Since(start)
+ 						bc.lockingHistograms[idx].add(int64(elapse))
+-						select {
+-						case <-bc.stop:
+-						case done <- true:
+-						}
++						done <- true
+ 					}()
+-					select {
+-					case <-bc.stop:
+-						return
+-					case <-done:
+-					}
++					<-done
+ 				}
+ 			}(idx)
+ 		}

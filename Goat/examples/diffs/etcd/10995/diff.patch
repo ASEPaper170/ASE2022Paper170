@@ -1,0 +1,13 @@
+diff --git a/tests/functional/agent/server.go b/tests/functional/agent/server.go
+index bfd5e01..0b53312 100644
+--- a/tests/functional/agent/server.go
++++ b/tests/functional/agent/server.go
+@@ -127,7 +127,7 @@ func (srv *Server) Stop() {
+ 
+ // Transport communicates with etcd tester.
+ func (srv *Server) Transport(stream rpcpb.Transport_TransportServer) (reterr error) {
+-	errc := make(chan error, 1)
++	errc := make(chan error)
+ 	go func() {
+ 		for {
+ 			var req *rpcpb.Request

@@ -1,0 +1,53 @@
+diff --git a/staging/src/k8s.io/apiserver/pkg/storage/etcd3/watcher.go b/staging/src/k8s.io/apiserver/pkg/storage/etcd3/watcher.go
+index d37991a0..7e545aea 100644
+--- a/staging/src/k8s.io/apiserver/pkg/storage/etcd3/watcher.go
++++ b/staging/src/k8s.io/apiserver/pkg/storage/etcd3/watcher.go
+@@ -174,12 +174,10 @@ func (wc *watchChan) run() {
+ 			break
+ 		}
+ 		errResult := transformErrorToEvent(err)
++		wc.cancel()
+ 		if errResult != nil {
+ 			// error result is guaranteed to be received by user before closing ResultChan.
+-			select {
+-			case wc.resultChan <- *errResult:
+-			case <-wc.ctx.Done(): // user has given up all results
+-			}
++			wc.resultChan <- *errResult
+ 		}
+ 	case <-watchClosedCh:
+ 	case <-wc.ctx.Done(): // user cancel
+@@ -187,7 +185,6 @@ func (wc *watchChan) run() {
+ 
+ 	// We use wc.ctx to reap all goroutines. Under whatever condition, we should stop them all.
+ 	// It's fine to double cancel.
+-	wc.cancel()
+ 
+ 	// we need to wait until resultChan wouldn't be used anymore
+ 	resultChanWG.Wait()
+diff --git a/staging/src/k8s.io/apiserver/pkg/storage/etcd3/watcher_test.go b/staging/src/k8s.io/apiserver/pkg/storage/etcd3/watcher_test.go
+index 3f55398d..91a565da 100644
+--- a/staging/src/k8s.io/apiserver/pkg/storage/etcd3/watcher_test.go
++++ b/staging/src/k8s.io/apiserver/pkg/storage/etcd3/watcher_test.go
+@@ -253,8 +253,7 @@ func TestWatchContextCancel(t *testing.T) {
+ 	}
+ }
+ 
+-func TestWatchErrResultNotBlockAfterCancel(t *testing.T) {
+-	origCtx, store, _ := testSetup(t)
++func synthEntry(origCtx context.Context, store *store) {
+ 	ctx, cancel := context.WithCancel(origCtx)
+ 	w := store.watcher.createWatchChan(ctx, "/abc", 0, false, false, storage.Everything)
+ 	// make resutlChan and errChan blocking to ensure ordering.
+@@ -275,6 +274,11 @@ func TestWatchErrResultNotBlockAfterCancel(t *testing.T) {
+ 	wg.Wait()
+ }
+ 
++func TestWatchErrResultNotBlockAfterCancel(t *testing.T) {
++	origCtx, store, _ := testSetup(t)
++	synthEntry(origCtx, store)
++}
++
+ func TestWatchDeleteEventObjectHaveLatestRV(t *testing.T) {
+ 	ctx, store, client := testSetup(t)
+ 	key, storedObj := testPropogateStore(ctx, t, store, &example.Pod{ObjectMeta: metav1.ObjectMeta{Name: "foo"}})

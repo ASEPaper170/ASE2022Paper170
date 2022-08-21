@@ -1,0 +1,66 @@
+diff --git a/staging/src/k8s.io/apimachinery/pkg/util/httpstream/spdy/connection_test.go b/staging/src/k8s.io/apimachinery/pkg/util/httpstream/spdy/connection_test.go
+index edef9171..30bffa63 100644
+--- a/staging/src/k8s.io/apimachinery/pkg/util/httpstream/spdy/connection_test.go
++++ b/staging/src/k8s.io/apimachinery/pkg/util/httpstream/spdy/connection_test.go
+@@ -30,10 +30,10 @@ import (
+ 	"k8s.io/apimachinery/pkg/util/httpstream"
+ )
+ 
+-func runProxy(t *testing.T, backendUrl string, proxyUrl chan<- string, proxyDone chan<- struct{}, errCh chan<- error) {
++func runProxy(t *testing.T, backendUrl string, proxyUrl chan<- string, proxyDone chan<- struct{}) {
+ 	listener, err := net.Listen("tcp4", "localhost:0")
+ 	if err != nil {
+-		errCh <- err
++		t.Fatalf("error listening: %v", err)
+ 		return
+ 	}
+ 	defer listener.Close()
+@@ -71,10 +71,10 @@ func runProxy(t *testing.T, backendUrl string, proxyUrl chan<- string, proxyDone
+ 	proxyDone <- struct{}{}
+ }
+ 
+-func runServer(t *testing.T, backendUrl chan<- string, serverDone chan<- struct{}, errCh chan<- error) {
++func runServer(t *testing.T, backendUrl chan<- string, serverDone chan<- struct{}) {
+ 	listener, err := net.Listen("tcp4", "localhost:0")
+ 	if err != nil {
+-		errCh <- err
++		t.Fatalf("server: error listening: %v", err)
+ 		return
+ 	}
+ 	defer listener.Close()
+@@ -120,29 +120,15 @@ func runServer(t *testing.T, backendUrl chan<- string, serverDone chan<- struct{
+ }
+ 
+ func TestConnectionCloseIsImmediateThroughAProxy(t *testing.T) {
+-	errCh := make(chan error)
+-
+-	serverDone := make(chan struct{}, 1)
++	serverDone := make(chan struct{})
+ 	backendUrlChan := make(chan string)
+-	go runServer(t, backendUrlChan, serverDone, errCh)
++	go runServer(t, backendUrlChan, serverDone)
++	backendUrl := <-backendUrlChan
+ 
+-	var backendUrl string
+-	select {
+-	case err := <-errCh:
+-		t.Fatalf("server: error listening: %v", err)
+-	case backendUrl = <-backendUrlChan:
+-	}
+-
+-	proxyDone := make(chan struct{}, 1)
++	proxyDone := make(chan struct{})
+ 	proxyUrlChan := make(chan string)
+-	go runProxy(t, backendUrl, proxyUrlChan, proxyDone, errCh)
+-
+-	var proxyUrl string
+-	select {
+-	case err := <-errCh:
+-		t.Fatalf("error listening: %v", err)
+-	case proxyUrl = <-proxyUrlChan:
+-	}
++	go runProxy(t, backendUrl, proxyUrlChan, proxyDone)
++	proxyUrl := <-proxyUrlChan
+ 
+ 	conn, err := net.Dial("tcp4", proxyUrl)
+ 	if err != nil {
